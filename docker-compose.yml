@@ -1,0 +1,42 @@
+services:
+  kvrocks:
+    image: apache/kvrocks:2.14.0
+    container_name: ${CONTAINER_NAME}
+    network_mode: host
+    restart: unless-stopped
+    # volumes:
+    #   - ./kvrocks/data/:/var/lib/kvrocks/data
+
+    # masterauth: password for replica->master communication
+    command: >
+      --bind 0.0.0.0
+      --port 6667
+      --workers 8
+      --requirepass ${KVROCKS_PASSWORD}
+      --masterauth ${KVROCKS_PASSWORD}
+      --dir /var/lib/kvrocks/data
+      --cluster-enabled yes
+      --cluster-announce-port 6666
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "6667", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  haproxy:
+    image: haproxy:2.9
+    container_name: kvrocks-haproxy
+    network_mode: host
+    depends_on:
+      - kvrocks
+    restart: unless-stopped
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./certs/server.pem:/etc/haproxy/server.pem:ro
+      - ./certs/ca.crt:/etc/haproxy/ca.crt:ro
+    healthcheck:
+      test: ["CMD", "pgrep", "haproxy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
