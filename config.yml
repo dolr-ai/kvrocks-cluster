@@ -1,0 +1,33 @@
+# Kvrocks Cluster Configuration
+# All cluster settings in one place
+# Password is read from .env file (not here, for security)
+
+cluster:
+  port: 6666
+  workers: 8
+  topology_version: 4
+
+nodes:
+  - name: master1
+    ssh_alias: kvrocks-master-1
+    ip: 136.243.150.223
+    role: master
+    slots: "0-8191"
+
+  - name: master2
+    ssh_alias: kvrocks-master-2
+    ip: 138.201.128.44
+    role: master
+    slots: "8192-16383"
+
+  - name: replica1
+    ssh_alias: kvrocks-replica-1
+    ip: 136.243.173.190
+    role: slave
+    master: master1
+
+  - name: replica2
+    ssh_alias: kvrocks-replica-2
+    ip: 138.201.222.232
+    role: slave
+    master: master2
